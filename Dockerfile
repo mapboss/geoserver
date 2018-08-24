@@ -28,7 +28,7 @@ RUN rm -rf ${GEOSERVER_DIR}/data/workspaces && mkdir ${GEOSERVER_DIR}/data/works
 
 COPY ./ROOT.xml ${TOMCAT_DIR}/conf/Catalina/localhost/ROOT.xml
 COPY ./web.xml ${GEOSERVER_DIR}/WEB-INF/web.xml
-COPY ./exts/* /geoserver-exts/
+COPY ./exts/* /geoserver-exts/default/
 
 ADD scripts /tmp/scripts
 RUN chmod -R a+x /tmp/scripts
