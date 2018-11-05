@@ -9,7 +9,7 @@ RUN apt-get -y install unzip groovy2 wget
 
 ADD resources /tmp/resources
 
-ARG GEOSERVER_VERSION=2.13.2
+ARG GEOSERVER_VERSION=2.13.3
 
 ENV GEOSERVER_DIR /opt/webapps/geoserver
 ENV TOMCAT_DIR /usr/local/tomcat
