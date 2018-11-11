@@ -17,7 +17,7 @@ if test -n "${DB_PORT_5432_TCP_ADDR}"; then
 fi
 
 for ext in `ls -d /geoserver-exts/*`; do
-  cp "${ext}"/*.jar ${GEOSERVER_DIR}/WEB-INF/lib
+  cp "${ext}"/**/*.jar ${GEOSERVER_DIR}/WEB-INF/lib || true
 done
 
 # Run tomcat
