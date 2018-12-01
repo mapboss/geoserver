@@ -1,5 +1,5 @@
 #--------- Generic stuff --------------------------------------------------------------------
-FROM tomcat:9.0.7-jre8-slim
+FROM tomcat:8.5.34-jre8-slim
 
 RUN apt-get -y update
 
@@ -9,7 +9,7 @@ RUN apt-get -y install unzip groovy2 wget
 
 ADD resources /tmp/resources
 
-ARG GEOSERVER_VERSION=2.13.3
+ARG GEOSERVER_VERSION=2.14.1
 
 ENV GEOSERVER_DIR /opt/webapps/geoserver
 ENV TOMCAT_DIR /usr/local/tomcat
@@ -22,6 +22,23 @@ RUN if [ ! -f /tmp/resources/geoserver.zip ]; then \
     mkdir /opt/webapps && mv -v geoserver.war /opt/webapps && mkdir ${GEOSERVER_DIR} && cd ${GEOSERVER_DIR} && unzip ../geoserver.war; \
     rm -rf /tmp/resources/geoserver;
 
+WORKDIR /tmp
+ARG JAI_IMAGEIO=true
+RUN if [ "$JAI_IMAGEIO" = true ]; then \
+    wget http://download.java.net/media/jai/builds/release/1_1_3/jai-1_1_3-lib-linux-amd64.tar.gz && \
+    wget http://download.java.net/media/jai-imageio/builds/release/1.1/jai_imageio-1_1-lib-linux-amd64.tar.gz && \
+    gunzip -c jai-1_1_3-lib-linux-amd64.tar.gz | tar xf - && \
+    gunzip -c jai_imageio-1_1-lib-linux-amd64.tar.gz | tar xf - && \
+    mv /tmp/jai-1_1_3/lib/*.jar $JAVA_HOME/lib/ext/ && \
+    mv /tmp/jai-1_1_3/lib/*.so $JAVA_HOME/lib/amd64/ && \
+    mv /tmp/jai_imageio-1_1/lib/*.jar $JAVA_HOME/lib/ext/ && \
+    mv /tmp/jai_imageio-1_1/lib/*.so $JAVA_HOME/lib/amd64/ && \
+    rm /tmp/jai-1_1_3-lib-linux-amd64.tar.gz && \
+    rm -r /tmp/jai-1_1_3 && \
+    rm /tmp/jai_imageio-1_1-lib-linux-amd64.tar.gz && \
+    rm -r /tmp/jai_imageio-1_1; \
+    fi
+
 # delete default workspaces
 RUN rm -rf ${GEOSERVER_DIR}/data/workspaces && mkdir ${GEOSERVER_DIR}/data/workspaces; \
     rm -rf ${GEOSERVER_DIR}/data/layergroups/*
@@ -29,11 +46,18 @@ RUN rm -rf ${GEOSERVER_DIR}/data/workspaces && mkdir ${GEOSERVER_DIR}/data/works
 COPY ./ROOT.xml ${TOMCAT_DIR}/conf/Catalina/localhost/ROOT.xml
 COPY ./web.xml ${GEOSERVER_DIR}/WEB-INF/web.xml
 
-ADD exts /geoserver-exts/default
+WORKDIR /geoserver-exts/default
+RUN wget -c http://sourceforge.net/projects/geoserver/files/GeoServer/${GEOSERVER_VERSION}/extensions/geoserver-${GEOSERVER_VERSION}-vectortiles-plugin.zip
+RUN wget -c http://sourceforge.net/projects/geoserver/files/GeoServer/${GEOSERVER_VERSION}/extensions/geoserver-${GEOSERVER_VERSION}-mongodb-plugin.zip
+RUN wget -c http://sourceforge.net/projects/geoserver/files/GeoServer/${GEOSERVER_VERSION}/extensions/geoserver-${GEOSERVER_VERSION}-querylayer-plugin.zip
+RUN wget -c http://sourceforge.net/projects/geoserver/files/GeoServer/${GEOSERVER_VERSION}/extensions/geoserver-${GEOSERVER_VERSION}-monitor-plugin.zip
+RUN wget -c http://sourceforge.net/projects/geoserver/files/GeoServer/${GEOSERVER_VERSION}/extensions/geoserver-${GEOSERVER_VERSION}-wps-plugin.zip
+
 ADD scripts /tmp/scripts
 RUN chmod -R a+x /tmp/scripts
 
 # Run setup script to apply initial settings
+WORKDIR ${GEOSERVER_DIR}
 RUN /tmp/scripts/setup.groovy ${GEOSERVER_DIR}
 
 VOLUME ["/geoserver-exts","/opt/webapps/geoserver"]
