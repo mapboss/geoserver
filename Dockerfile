@@ -44,20 +44,32 @@ RUN rm -rf ${GEOSERVER_DIR}/data/workspaces && mkdir ${GEOSERVER_DIR}/data/works
     rm -rf ${GEOSERVER_DIR}/data/layergroups/*
 
 COPY ./ROOT.xml ${TOMCAT_DIR}/conf/Catalina/localhost/ROOT.xml
-COPY ./web.xml ${GEOSERVER_DIR}/WEB-INF/web.xml
 
 WORKDIR /geoserver-exts/default
-RUN wget -c http://sourceforge.net/projects/geoserver/files/GeoServer/${GEOSERVER_VERSION}/extensions/geoserver-${GEOSERVER_VERSION}-vectortiles-plugin.zip
-RUN wget -c http://sourceforge.net/projects/geoserver/files/GeoServer/${GEOSERVER_VERSION}/extensions/geoserver-${GEOSERVER_VERSION}-mongodb-plugin.zip
-RUN wget -c http://sourceforge.net/projects/geoserver/files/GeoServer/${GEOSERVER_VERSION}/extensions/geoserver-${GEOSERVER_VERSION}-querylayer-plugin.zip
-RUN wget -c http://sourceforge.net/projects/geoserver/files/GeoServer/${GEOSERVER_VERSION}/extensions/geoserver-${GEOSERVER_VERSION}-monitor-plugin.zip
-RUN wget -c http://sourceforge.net/projects/geoserver/files/GeoServer/${GEOSERVER_VERSION}/extensions/geoserver-${GEOSERVER_VERSION}-wps-plugin.zip
+RUN wget -c http://sourceforge.net/projects/geoserver/files/GeoServer/${GEOSERVER_VERSION}/extensions/geoserver-${GEOSERVER_VERSION}-vectortiles-plugin.zip && \
+    mkdir vectortiles && \
+    unzip geoserver-${GEOSERVER_VERSION}-vectortiles-plugin.zip -d vectortiles
+
+RUN wget -c http://sourceforge.net/projects/geoserver/files/GeoServer/${GEOSERVER_VERSION}/extensions/geoserver-${GEOSERVER_VERSION}-mongodb-plugin.zip && \
+    mkdir mongodb && \
+    unzip geoserver-${GEOSERVER_VERSION}-mongodb-plugin.zip -d mongodb
+
+RUN wget -c http://sourceforge.net/projects/geoserver/files/GeoServer/${GEOSERVER_VERSION}/extensions/geoserver-${GEOSERVER_VERSION}-querylayer-plugin.zip && \
+    mkdir querylayer && \
+    unzip geoserver-${GEOSERVER_VERSION}-querylayer-plugin.zip -d querylayer
+
+RUN wget -c http://sourceforge.net/projects/geoserver/files/GeoServer/${GEOSERVER_VERSION}/extensions/geoserver-${GEOSERVER_VERSION}-monitor-plugin.zip && \
+    mkdir monitor && \
+    unzip geoserver-${GEOSERVER_VERSION}-monitor-plugin.zip -d monitor
+
+RUN wget -c http://sourceforge.net/projects/geoserver/files/GeoServer/${GEOSERVER_VERSION}/extensions/geoserver-${GEOSERVER_VERSION}-wps-plugin.zip && \
+    mkdir wps && \
+    unzip geoserver-${GEOSERVER_VERSION}-wps-plugin.zip -d wps
 
 ADD scripts /tmp/scripts
 RUN chmod -R a+x /tmp/scripts
 
 # Run setup script to apply initial settings
-WORKDIR ${GEOSERVER_DIR}
 RUN /tmp/scripts/setup.groovy ${GEOSERVER_DIR}
 
 VOLUME ["/geoserver-exts","/opt/webapps/geoserver"]
